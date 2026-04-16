@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lino lea 議事録・タスク管理 | まきさん × あやさん</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #f0f4f8;
+    color: #333;
+    line-height: 1.8;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('bg.jpg') no-repeat center top;
+    background-size: cover;
+    opacity: 0.18;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* HEADER - ゴージャスなブルーグラデーション */
+  header {
+    background: linear-gradient(135deg, #1a3a6a 0%, #2a5ea0 20%, #3878c4 40%, #4a92da 60%, #64ade8 80%, #88c8f4 100%);
+    color: white;
+    padding: 48px 32px 44px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 3px solid #b8962e;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 40%, rgba(0,0,0,0.15) 100%);
+    pointer-events: none;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(184,150,46,0.6), #b8962e, rgba(184,150,46,0.6), transparent);
+  }
+  header .label {
+    display: inline-block;
+    background: rgba(184,150,46,0.25);
+    border: 1px solid rgba(184,150,46,0.5);
+    padding: 4px 20px;
+    font-size: 12px;
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    color: #e8d48b;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  header p {
+    font-size: 14px;
+    opacity: 0.75;
+    letter-spacing: 1px;
+  }
+
+  /* TOP TABS */
+  .top-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    background: rgba(255,255,255,0.95);
+    border-bottom: 2px solid #e8e0c8;
+    backdrop-filter: blur(4px);
+  }
+  .top-tab {
+    padding: 14px 32px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #999;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .top-tab:hover { color: #8a7530; }
+  .top-tab.active {
+    color: #6b5a1e;
+    border-bottom-color: #b8962e;
+  }
+
+  /* TOP TAB CONTENT */
+  .top-content { display: none; }
+  .top-content.active { display: block; }
+
+  /* META */
+  .meta-bar {
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 32px;
+    padding: 18px 32px;
+    border-bottom: 1px solid #e8e0c8;
+    backdrop-filter: blur(4px);
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #555;
+  }
+  .meta-item .icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a84c, #8a6d24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .meta-item .icon svg { width: 12px; height: 12px; fill: white; }
+
+  /* DATE TABS */
+  .date-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 24px;
+    background: transparent;
+  }
+  .date-tab {
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #999;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid #d8d0b8;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    backdrop-filter: blur(4px);
+  }
+  .date-tab:hover { border-color: #b8962e; color: #8a7530; }
+  .date-tab.active {
+    background: linear-gradient(135deg, #c9a84c, #8a6d24);
+    color: white;
+    border-color: transparent;
+  }
+
+  /* DATE CONTENT */
+  .date-content { display: none; }
+  .date-content.active { display: block; }
+
+  /* MAIN */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 24px 80px;
+  }
+
+  /* SECTION */
+  .section {
+    background: rgba(255,255,255,0.88);
+    border-radius: 0;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    backdrop-filter: blur(6px);
+    border-top: 2px solid rgba(184,150,46,0.2);
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #6b5a1e;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e8e0c8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: linear-gradient(180deg, #c9a84c, #8a6d24);
+    border-radius: 0;
+  }
+
+  /* SUMMARY CARDS */
+  .summary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .summary-card {
+    background: rgba(184,150,46,0.06);
+    border-left: 4px solid #b8962e;
+    border-radius: 0;
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .summary-card .number {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8a7530;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  /* TASK TABLE */
+  .task-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .task-table th {
+    background: rgba(184,150,46,0.08);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 13px;
+    color: #6b5a1e;
+    border-bottom: 2px solid #e8e0c8;
+  }
+  .task-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #ece8da;
+    vertical-align: top;
+  }
+  .task-table tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 0;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge-maki { background: #fde8f3; color: #c0396a; }
+  .badge-aya  { background: #e0f0fd; color: #3a6ec0; }
+  .badge-hi   { background: #fde8e8; color: #c03a3a; }
+  .badge-mid  { background: #fdf5e8; color: #c08a3a; }
+  .badge-lo   { background: #e8fde8; color: #3ac03a; }
+  .badge-done { background: #e0f0e0; color: #2a8a2a; }
+
+  /* DETAIL BLOCKS */
+  .topic-block { margin-bottom: 24px; }
+  .topic-block:last-child { margin-bottom: 0; }
+
+  .topic-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topic-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a84c, #8a6d24);
+    flex-shrink: 0;
+  }
+
+  .topic-block ul { list-style: none; padding: 0; }
+  .topic-block ul li {
+    font-size: 14px;
+    padding: 5px 0 5px 16px;
+    position: relative;
+    color: #444;
+    border-bottom: 1px solid #f0ece0;
+  }
+  .topic-block ul li:last-child { border-bottom: none; }
+  .topic-block ul li::before {
+    content: '\2192';
+    position: absolute;
+    left: 0;
+    color: #c0a850;
+    font-size: 12px;
+    top: 6px;
+  }
+
+  /* QA BLOCK */
+  .qa-block {
+    background: rgba(184,150,46,0.05);
+    border-radius: 0;
+    padding: 16px 18px;
+    margin-top: 12px;
+    font-size: 14px;
+    border-left: 3px solid rgba(184,150,46,0.3);
+  }
+  .qa-q { font-weight: 700; color: #6b5a1e; margin-bottom: 6px; }
+  .qa-a { color: #444; }
+
+  /* HIGHLIGHT BOX */
+  .highlight {
+    background: rgba(184,150,46,0.06);
+    border: 1px solid rgba(184,150,46,0.25);
+    border-radius: 0;
+    padding: 16px 18px;
+    font-size: 14px;
+    color: #444;
+    margin-top: 12px;
+  }
+
+  /* NEXT STEPS */
+  .next-list { display: flex; flex-direction: column; gap: 12px; }
+  .next-item { display: flex; gap: 14px; align-items: flex-start; font-size: 14px; }
+  .next-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c9a84c, #8a6d24);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .next-item .who {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 0;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ====== TASK BOARD ====== */
+  .task-board { padding: 24px 0; }
+  .task-board h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #6b5a1e;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .task-filters {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .task-filter {
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #888;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid #d8d0b8;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .task-filter:hover { border-color: #b8962e; color: #8a7530; }
+  .task-filter.active { background: linear-gradient(135deg, #c9a84c, #8a6d24); color: white; border-color: transparent; }
+
+  .task-card {
+    background: rgba(255,255,255,0.88);
+    border-radius: 0;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+  }
+  .task-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
+  .task-card.completed { opacity: 0.6; }
+  .task-card.completed .task-name { text-decoration: line-through; color: #999; }
+
+  .task-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 0;
+    border: 2px solid #c8b87a;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: white;
+  }
+  .task-check:hover { border-color: #b8962e; }
+  .task-check.checked {
+    background: linear-gradient(135deg, #c9a84c, #8a6d24);
+    border-color: transparent;
+  }
+  .task-check.checked::after {
+    content: '\2713';
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 6px; }
+  .task-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .task-date {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 20px; }
+    .section { padding: 20px 18px; }
+    .meta-bar { gap: 16px; }
+    .top-tab { padding: 12px 18px; font-size: 13px; }
+    .date-tab { padding: 6px 14px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">gokigen design</div>
+  <h1>Lino lea プロジェクト管理</h1>
+  <p>まきさん × あやさん</p>
+</header>
+
+<!-- ===== トップタブ（議事録 / タスク管理） ===== -->
+<div class="top-tabs">
+  <div class="top-tab active" onclick="switchTop('minutes')">議事録</div>
+  <div class="top-tab" onclick="switchTop('tasks')">タスク管理</div>
+  <div class="top-tab" onclick="switchTop('qa')">よくある質問</div>
+</div>
+
+<!-- ============================================= -->
+<!-- ===== 議事録セクション ===== -->
+<!-- ============================================= -->
+<div class="top-content active" id="top-minutes">
+
+  <!-- 日付タブ -->
+  <div class="date-tabs">
+    <div class="date-tab" onclick="switchDate('0401')">4/1（火）初回セッション</div>
+    <div class="date-tab active" onclick="switchDate('0415')">4/15（火）事業MTG</div>
+  </div>
+
+  <!-- ==================== -->
+  <!-- 4/1 初回セッション -->
+  <!-- ==================== -->
+  <div class="date-content" id="date-0401">
+    <div class="meta-bar">
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div>
+        2名
+      </div>
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg></div>
+        2026年4月1日（火）
+      </div>
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
+        約4時間10分（Google Meet）
+      </div>
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+        Claude Code 初期設定 + 会員サイト制作体験
+      </div>
+      <div class="meta-item">
+        <a href="https://youtu.be/oLwB4NFJYaM" target="_blank" style="display:inline-flex; align-items:center; gap:6px; color:#999; text-decoration:none; font-size:12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#cc0000"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
+          録画
+        </a>
+      </div>
+    </div>
+    <main>
+      <div class="section">
+        <div class="section-title">サマリー：主な決定事項</div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="number">DECISION 01</div>
+            Claude Code は <strong>Sonnet 4.6</strong> をメインで使用。上限が近づいたら Opus 4.6 に切り替える。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 02</div>
+            スライド制作は <strong>NotebookLM</strong>、Web サイト・システム系は <strong>Claude Code</strong> の二刀流に。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 03</div>
+            会員サイトは既存の <strong>モッシュと並行</strong> して試験運用。2期生募集時に本格移行を検討。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 04</div>
+            動画コンテンツは <strong>Vimeo / YouTube のURLで埋め込み</strong>。テキストはClaude Codeから直接貼り付け。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 05</div>
+            会員ページは <strong>1つのURL + 個人パスワード</strong> で管理。講師・受講生でログイン画面を分離。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 06</div>
+            公開は <strong>GitHub Pages</strong> を使用（無料）。独自ドメインがあれば紐付け可能。
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">セッション内容①：AIエージェントって何？</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>ChatGPT・Gemini との大きな違い</div>
+          <ul>
+            <li>ChatGPT / Gemini：アドバイスや壁打ち相手。<strong>テキストで返すだけ</strong></li>
+            <li>Claude Code（AIエージェント）：<strong>実際に作業してくれる</strong>パートナー。ファイルを直接操作・編集する</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>あやさんがこの2週間で作ったもの</div>
+          <ul>
+            <li>プロジェクト管理サイト / AI活用度診断ツール / 夢カレンダーアプリ</li>
+            <li>ランディングページ（アニメーション付き） / 会員サイト / プレゼンスライド</li>
+          </ul>
+        </div>
+        <div class="highlight">
+          <strong>重要ポイント：</strong>一度作ったものに「ここを追加して」と言うだけで、既存のデータを消さず<strong>バージョンアップ</strong>できる。
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">セッション内容②：Claude Code 初期設定</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>重要な初期設定 3点</div>
+          <ul>
+            <li><strong>編集を自動承認 → 「許可を確認」に変更</strong>（最初は手動確認で安全に）</li>
+            <li><strong>モデル：Sonnet 4.6</strong> をメインに使用</li>
+            <li><strong>フォルダ選択</strong>：「まき」フォルダを作成。全作業物がここに蓄積される</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">セッション内容③：スライド制作デモ</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>結果と気づき</div>
+          <ul>
+            <li>Claude Codeでスライド → デザインのバランスが崩れた</li>
+            <li>NotebookLMの方が見た目が整う → <strong>二刀流</strong>が有効</li>
+            <li>スライド2枚で上限に達した → Opusモードや3〜5枚ずつの指示で改善可能</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">セッション内容④：会員サイト制作デモ</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>Claude Codeが作ってくれたもの</div>
+          <ul>
+            <li>ログイン画面（講師/受講生で分離） / ダッシュボード / コンテンツページ</li>
+            <li>マイページ（進捗・ワーク・フィードバック） / お知らせ / 講師管理画面</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">セッション内容⑤：ビジネス展望</div>
+        <div class="highlight">
+          <strong>まきさんの気づき：</strong>「誰が先にやるかだと思う。ProFの12人の中でも早く動かないと。AIができる人はこれから伸びる。」
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ==================== -->
+  <!-- 4/15 事業MTG -->
+  <!-- ==================== -->
+  <div class="date-content active" id="date-0415">
+    <div class="meta-bar">
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div>
+        2名
+      </div>
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg></div>
+        2026年4月15日（火）
+      </div>
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
+        約1時間8分（Google Meet）
+      </div>
+      <div class="meta-item">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+        事業全体の方向性 + 今後の依頼相談
+      </div>
+      <div class="meta-item">
+        <a href="https://youtu.be/Y9P3CxxIgn8" target="_blank" style="display:inline-flex; align-items:center; gap:6px; color:#999; text-decoration:none; font-size:12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#cc0000"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
+          録画
+        </a>
+      </div>
+    </div>
+    <main>
+      <!-- SUMMARY -->
+      <div class="section">
+        <div class="section-title">サマリー：主な決定事項</div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="number">DECISION 01</div>
+            <strong>会員サイト更新</strong>をあやさんに依頼。Notionカリキュラムを反映し、チェックリスト・動画埋め込み・ワーク提出機能を整備する。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 02</div>
+            <strong>Canvaセミナー</strong>を5月14日（水）10:00〜12:00で開催。報酬1万円。QRコード・ショップカード制作も追加。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 03</div>
+            あやさんを<strong>オープンチャットに運営として招待</strong>。受講生のフォローを担う。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 04</div>
+            将来的に<strong>運営サポート（月額制）</strong>をあやさんに依頼する方向。業務量が見えたタイミングで正式相談。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 05</div>
+            <strong>大さん橋イベント</strong>にあやさんが撮影スタッフとして同行。DJI Osmo + ピンマイクで撮影。
+          </div>
+          <div class="summary-card">
+            <div class="number">DECISION 06</div>
+            6ヶ月コースの次回募集は<strong>6月1日</strong>予定。うちうち（既存受講生向け）で開始。
+          </div>
+        </div>
+      </div>
+
+      <!-- 話題1 -->
+      <div class="section">
+        <div class="section-title">話題①：6ヶ月コースの現状と展望</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>現在の状況</div>
+          <ul>
+            <li>2026年4月スタート、<strong>7名</strong>が受講中</li>
+            <li>全受講者（約100名）のうち<strong>約90名はまだ6ヶ月コースの存在を知らない</strong></li>
+            <li>グループコンサル・オープンチャットを最近開始。事前質問ボックスも運用中</li>
+            <li>現状はまきさん1人で運営できているが、人数が増えると手が回らなくなる見込み</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>今後の募集計画</div>
+          <ul>
+            <li>次回募集：<strong>6月1日</strong>予定（うちうち = 既存受講生向け）</li>
+            <li>一般募集は<strong>来年</strong>から。LP（アニメーション付き）はその時にあやさんに依頼</li>
+            <li>年2回募集の予定。ウェビナー導入で勝ち導線の自動化も検討</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>受講生のマインド課題</div>
+          <ul>
+            <li>「決済ページどうやるんですか？」→ ChatGPTに聞いてと案内 → 不満の声</li>
+            <li>急遽<strong>マインドセットセミナー</strong>を実施。「指示待ちではなく事業主マインドに」</li>
+            <li>「全部触って全部やって自分で決めて」がまきさんのスタンス</li>
+          </ul>
+        </div>
+        <div class="highlight">
+          <strong>まきさんの信念：</strong>「まず全部やってみる。困ったらプロに頼む。プロの言うことは間違いないからすぐ課金する。」
+        </div>
+      </div>
+
+      <!-- 話題2 -->
+      <div class="section">
+        <div class="section-title">話題②：AIセミナーの集客結果と分析</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>集客結果</div>
+          <ul>
+            <li>7人中<strong>4人が男性</strong>（全員60歳以上）→ 想定ターゲットと異なる層</li>
+            <li>「収益化」を押し出したLPだったため男性が反応</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>まきさんの分析</div>
+          <ul>
+            <li>女性ターゲットには<strong>「コミュニティ」「仲間」「楽しく」</strong>の方が響く</li>
+            <li>次回LPは繋がり重視の訴求に変更検討</li>
+            <li>男性の認定講師活用も視野に入れつつ、メインターゲットは主婦のまま</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 話題3 -->
+      <div class="section">
+        <div class="section-title">話題③：会員サイトの方向性</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>Notionでカリキュラムが出来上がった経緯</div>
+          <ul>
+            <li>Claude Codeと対話しながらチェックリスト → テンプレ → コンテンツページが自然とできた</li>
+            <li>特定商取引法の資料もClaude CodeでPDF化。<strong>隙間時間3日で完成</strong></li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>Notion vs 会員サイト</div>
+          <ul>
+            <li><strong>Notion方式：</strong>1人1ページ複製 → 修正が全員分必要（デメリット）</li>
+            <li><strong>会員サイト方式：</strong>1箇所修正で全員に反映（メリット）→ <strong>こちらを採用</strong></li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>「何ヶ月目」表記をやめる方針</div>
+          <ul>
+            <li>進む速度は人それぞれ。テーマごと（基盤づくり・商品準備 etc.）に変更</li>
+          </ul>
+        </div>
+        <div class="highlight">
+          <strong>補足：</strong>あやさん側で既にカリキュラムを5Phase構造に全面更新済み。GitHub Pagesにデプロイ完了。
+        </div>
+      </div>
+
+      <!-- 話題4 -->
+      <div class="section">
+        <div class="section-title">話題④：運営サポートの相談</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>まきさんが考えている依頼内容</div>
+          <ul>
+            <li>オープンチャットでの<strong>リマインド配信</strong></li>
+            <li>LINE配信の補助（AIで文章作成 → あやさんの言葉で調整して配信）</li>
+            <li>イベント同行・<strong>撮影</strong>（DJI Osmo + ピンマイク）</li>
+            <li>受講生の進捗フォロー / バナー・画像制作</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>契約形態</div>
+          <ul>
+            <li><strong>月額制</strong>を希望（1配信いくらだと躊躇してしまう）</li>
+            <li>基本料金 + 大きい追加依頼は別途相談</li>
+            <li>業務量が見えてきたタイミングで正式スタート</li>
+          </ul>
+        </div>
+        <div class="qa-block">
+          <div class="qa-q">まきさんがあやさんを選ぶ理由</div>
+          <div class="qa-a">
+            「あやさんはクライアントのことをちゃんと理解しようとしてくれるし、デザインに落とし込む以上のことをしようとしてくれる。受講生に対しても思いやりがある。あったかい文章が書ける。事務的な文とあやさんの文ではみんなの受け取り方が全然違う。テクニックの問題じゃなくて人間性。」
+          </div>
+        </div>
+      </div>
+
+      <!-- 話題5 -->
+      <div class="section">
+        <div class="section-title">話題⑤：外部パートナーの整理</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>現在のパートナー構成</div>
+          <ul>
+            <li><strong>あきさん</strong>：ProLine構築（海レジンのみ年間契約）。システム設定は得意だが文章作成・ディレクションは範囲外</li>
+            <li><strong>ゆかさん</strong>（大阪）：プロモーションディレクター。みな先生紹介。ProLine構築は範囲外</li>
+            <li><strong>とえちゃん</strong>：LINE構築専門。内容もセットもしてくれる。あやさんからの推薦</li>
+          </ul>
+        </div>
+        <div class="highlight">
+          <strong>整理：</strong>海レジンProLine = あきさん（契約済み）/ 新規構築 = とえちゃんに相談 / ディレクション = ゆかさん / デザイン・運営 = あやさん
+        </div>
+      </div>
+
+      <!-- 話題6 -->
+      <div class="section">
+        <div class="section-title">話題⑥：まきさんのAI活用</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>使っているツール</div>
+          <ul>
+            <li><strong>Claude Code</strong>（課金）/ <strong>NotebookLM</strong>（課金）/ <strong>ChatGPT</strong> / <strong>Notion</strong> / <strong>Canva</strong> / <strong>Vimeo</strong>（課金）</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>驚異的なスピードの実例</div>
+          <ul>
+            <li>ブランディング動画：Notion → Claude Code → NotebookLM → Canva → Zoom撮影 → Moshアップ。<strong>隙間時間3日</strong></li>
+            <li>Threadsセミナー：Claude Codeで調査 → NotebookLMでスライド → 保育園送迎中に生成完了。<strong>30分で完結</strong></li>
+            <li>マインドセミナー：朝、髪の毛巻きながらChatGPTに音声入力 → 保育園送迎後に完成</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 話題7 -->
+      <div class="section">
+        <div class="section-title">話題⑦：Canvaセミナーの詳細</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>概要</div>
+          <ul>
+            <li>日程：<strong>5月14日（水）10:00〜12:00</strong> / 報酬：<strong>10,000円</strong></li>
+            <li>形式：Zoom、一方通行レクチャー（全員ミュート）。質問はオープンチャットで後日</li>
+          </ul>
+        </div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>内容に追加するもの</div>
+          <ul>
+            <li><strong>QRコードの作り方</strong>（動画内で「QRコード入れて」と説明しているため必須）</li>
+            <li><strong>ショップカード</strong>の作り方（名刺との違い。名刺 = 同業向け、ショップカード = お客様向け）</li>
+            <li>前回フィードバック反映：「もっとできることを知りたかった」「作ったものをもっと見たかった」</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 話題8 -->
+      <div class="section">
+        <div class="section-title">話題⑧：今後のビジョン</div>
+        <div class="topic-block">
+          <div class="topic-title"><span class="dot"></span>方向性</div>
+          <ul>
+            <li>フロント4レッスン + バックエンド6ヶ月コース。今後は6ヶ月コースのプロモーションにシフト</li>
+            <li>AIでコンサル事業は競争激化する → だからこそ<strong>リアルで動くことを強化</strong></li>
+            <li>ProFは継続。下半期は外部（商工会議所など）にも出ていきたい</li>
+          </ul>
+        </div>
+        <div class="qa-block">
+          <div class="qa-q">まきさんの言葉</div>
+          <div class="qa-a">「就職しなくてよかったって思って。もう就職しなくてもいいぐらい私も頑張って事業をするので。その分あやさんに仕事を安定してお金持たせるようにしていきたい。」</div>
+        </div>
+      </div>
+
+      <!-- 金額メモ -->
+      <div class="section">
+        <div class="section-title">金額メモ</div>
+        <table class="task-table">
+          <thead><tr><th>項目</th><th>金額</th><th>ステータス</th></tr></thead>
+          <tbody>
+            <tr><td>会員サイト構築・更新（モニター価格）</td><td>10,000円</td><td><span class="badge badge-done">支払済み</span></td></tr>
+            <tr><td>Canvaセミナー（5/14）</td><td>10,000円</td><td><span class="badge badge-hi">確定</span></td></tr>
+            <tr><td>大さん橋イベント撮影</td><td>未定</td><td><span class="badge badge-mid">日程待ち</span></td></tr>
+            <tr><td>運営サポート（月額）</td><td>未定</td><td><span class="badge badge-mid">将来</span></td></tr>
+            <tr><td>LP制作（アニメーション付き）</td><td>未定</td><td><span class="badge badge-mid">来年</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+</div>
+
+<!-- ============================================= -->
+<!-- ===== タスク管理セクション ===== -->
+<!-- ============================================= -->
+<!-- ============================================= -->
+<!-- ===== よくある質問セクション ===== -->
+<!-- ============================================= -->
+<div class="top-content" id="top-qa">
+  <main>
+    <div class="section" style="margin-bottom:16px;">
+      <div class="section-title">海レジンアート 1dayセミナー Q&A</div>
+      <p style="font-size:13px; color:#888; margin-bottom:8px;">参加者からの質問と、まきさんの回答をまとめたものです。今後のコンテンツ・LP・セミナー資料に活用できます。</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">講座の難易度・内容について</div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. 海のレジンアートは2年前に体験、年数的に初心者ですが基礎の基礎から教えてもらえますか？</div>
+        <div class="qa-a">もちろんです。エポキシレジンとは何なのかというところから始まります。アレルギーの話、換気の話、全部やります。1日目は知識と下地準備、2日目から技術に入ります。超初心者の方もいらっしゃいますし、経験者でも基礎を教えていないお教室もあるので、うちでは全部しっかりやっています。モニターレッスンの意見も反映して構築しているので、お腹いっぱいになるぐらいの知識量です。ご安心ください。</div>
+      </div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. 波がうまくできません。セルが出る時と出ない時の違いも分かりません。</div>
+        <div class="qa-a">ほとんどの方のお悩みがこれです。大きくシュワシュワする・細かくシュワシュワする、なぜそうなるのかという理由からちゃんとお伝えします。「なぜか」が分かれば、それを意図的にコントロールできるようになります。</div>
+      </div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. ウッドレジンの相談も可能ですか？</div>
+        <div class="qa-a">ウッドレジン（リバーテーブルなど）はこの講座ではやっていません。研磨に丸2日かかったりして、ひたすらヤスる作業になるんですね。私自身もあまり好きではなく、とにかく「ヤスらない方法」でやっているので、ウッドレジンについてはお答えできません。すみません。</div>
+      </div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. 時間としては1日目、2日目どれぐらいになりますか？</div>
+        <div class="qa-a">10時スタートで、4〜5時間ずつぐらいです。基本は平日の10時からですが、土日もご相談いただければ対応可能です。マンツーマンなので、話が盛り上がると長くなることもありますが、レッスン自体は3〜4時間あれば終わります。</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">アレルギーについて</div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. エポキシにアレルギーがあるのですか？</div>
+        <div class="qa-a">エポキシ樹脂とエポキシレジンは同じもので、レジンアレルギー（樹脂アレルギー）があります。アレルギーのある方は受講いただけません。LEDレジンやUVレジンも含めて、樹脂全般の取り扱いはやめた方がいいかと思います。</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">卒業後・販売サポートについて</div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. 卒業後のオンライン販売サポートはありますか？卒業生で販売実績のある方はいますか？</div>
+        <div class="qa-a">ECサイトをやっている卒業生はもちろんいらっしゃいます。イベント販売をされている方もいます。ただ「販売サポート」がどこまでのイメージかによります。コテ先のテクニック的なことは全然お答えできますが、「月10万稼ぐにはどうしたらいいですか」といった質問には、マーケティングの本質理解から始める必要があるので、ちょっとしたアドバイスだけではできないんですね。無責任にお答えしたくないというのが正直な気持ちです。</div>
+      </div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. 今回の講座の中にマーケティングの本質が学べるでしょうか？</div>
+        <div class="qa-a">今回の認定講座にはマーケティングの本質は含まれていません。マーケティングやオンラインストア構築・運営を学べるのは別の6ヶ月コースになります（8月頃に募集予定）。ただ、まずステップ1・2の認定講座を習得すれば月5万は全然稼げると思います。波がコントロールできるようになるとオーダーや問い合わせが入ってくるので、断らずにやっていけば3〜5万はいけます。10万の壁を超えるにはブランディングやマーケティングの知識が必要になってくるので、そこが6ヶ月コースの領域です。</div>
+      </div>
+
+      <div class="qa-block" style="margin-bottom:14px;">
+        <div class="qa-q">Q. 今卒業生グループは何人ぐらいいますか？</div>
+        <div class="qa-a">シャイニングオーシャンは今33人です。途中で11〜12人の時期もありましたが、現在33人になりました。</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">まきさんの回答から見えるポイント（コンテンツ活用メモ）</div>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="number">POINT 01</div>
+          <strong>「なぜか」を教える講座</strong> - テクニックだけでなく原理を理解させることで、意図的にコントロールできるようになるという教え方の軸がある。
+        </div>
+        <div class="summary-card">
+          <div class="number">POINT 02</div>
+          <strong>点ではなく線で教える</strong> - コテ先のテクニックだけでは解決しない。本質 → テクニックの順番が大事。これは販売もレジンも同じ。
+        </div>
+        <div class="summary-card">
+          <div class="number">POINT 03</div>
+          <strong>ステップ設計が明確</strong> - 認定講座（技術習得・月5万）→ 6ヶ月コース（マーケティング・月10万超）という段階的な導線。LP・セミナーのCTAに活用できる。
+        </div>
+        <div class="summary-card">
+          <div class="number">POINT 04</div>
+          <strong>無責任に答えない姿勢</strong> - 「ちゃんとお伝えしたい」という信念。信頼感の源泉であり、ブランドメッセージに使える。
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================= -->
+<!-- ===== タスク管理セクション ===== -->
+<!-- ============================================= -->
+<div class="top-content" id="top-tasks">
+  <main>
+    <div class="task-board">
+      <h2>タスク管理ボード</h2>
+
+      <div class="task-filters">
+        <div class="task-filter active" onclick="filterTasks('all', this)">すべて</div>
+        <div class="task-filter" onclick="filterTasks('aya', this)">あやさん</div>
+        <div class="task-filter" onclick="filterTasks('maki', this)">まきさん</div>
+        <div class="task-filter" onclick="filterTasks('pending', this)">未完了のみ</div>
+      </div>
+
+      <div id="taskList">
+        <!-- JSで生成 -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <p>gokigen design / 作成：Claude Code（claude-sonnet-4-6）</p>
+  <p style="margin-top:4px;">2026年4月16日</p>
+</footer>
+
+<script>
+// ===== タブ切り替え =====
+function switchTop(id) {
+  document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.top-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('top-' + id).classList.add('active');
+}
+
+function switchDate(id) {
+  document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.date-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('date-' + id).classList.add('active');
+}
+
+// ===== タスク管理 =====
+const STORAGE_KEY = 'linlea_tasks';
+
+const defaultTasks = [
+  // 4/1 セッション由来
+  { id: 1,  who: 'aya',  name: 'GitHub Pages / 会員サイトの動画容量上限について調査', priority: 'mid', date: '4/1', deadline: '完了', done: true },
+  { id: 2,  who: 'maki', name: '会員サイトのコンテンツ（スケジュール・項目名）を整理', date: '4/1', priority: 'mid', deadline: '4月中', done: true },
+
+  // 4/15 MTG由来
+  { id: 10, who: 'aya',  name: '会員サイトを5Phase構造に全面更新', priority: 'hi', date: '4/15', deadline: '4/16', done: true },
+  { id: 11, who: 'aya',  name: '会員サイトにNotionカリキュラム内容を反映（動画URL待ち）', priority: 'hi', date: '4/15', deadline: 'なるべく早く', done: false },
+  { id: 12, who: 'aya',  name: 'GAS Code.gs再デプロイ手順を準備', priority: 'hi', date: '4/15', deadline: '近日中', done: false },
+  { id: 13, who: 'maki', name: 'Phase1の動画をVimeoにアップ → NotionにURL追記', priority: 'hi', date: '4/15', deadline: '近日中', done: false },
+  { id: 14, who: 'maki', name: 'あやさんをオープンチャットに運営として招待', priority: 'hi', date: '4/15', deadline: '4/16', done: false },
+  { id: 15, who: 'aya',  name: '5/14 Canvaセミナー準備（QRコード・ショップカード追加）', priority: 'mid', date: '4/15', deadline: '5/14まで', done: false },
+  { id: 16, who: 'aya',  name: '事務サポートの相場・業務内容リサーチ', priority: 'mid', date: '4/15', deadline: '今後', done: false },
+  { id: 17, who: 'maki', name: '大さん橋イベントの日程確定 → あやさんに撮影依頼', priority: 'mid', date: '4/15', deadline: '今後', done: false },
+  { id: 18, who: 'maki', name: 'とえちゃんに連絡（ProLine構築相談）', priority: 'lo', date: '4/15', deadline: '今後', done: false },
+  { id: 19, who: 'aya',  name: '会員サイトにリンクセクション追加（スケジュール・個別コンサル等）', priority: 'mid', date: '4/15', deadline: '近日中', done: false },
+];
+
+function loadTasks() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) return JSON.parse(saved);
+  return defaultTasks;
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+let currentFilter = 'all';
+
+function renderTasks() {
+  const tasks = loadTasks();
+  const container = document.getElementById('taskList');
+  let filtered = tasks;
+
+  if (currentFilter === 'aya') filtered = tasks.filter(t => t.who === 'aya');
+  else if (currentFilter === 'maki') filtered = tasks.filter(t => t.who === 'maki');
+  else if (currentFilter === 'pending') filtered = tasks.filter(t => !t.done);
+
+  // Sort: undone first, then by priority
+  const prio = { hi: 0, mid: 1, lo: 2 };
+  filtered.sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (prio[a.priority] || 1) - (prio[b.priority] || 1);
+  });
+
+  container.innerHTML = filtered.map(t => {
+    const whoLabel = t.who === 'aya' ? 'あやさん' : 'まきさん';
+    const whoBadge = t.who === 'aya' ? 'badge-aya' : 'badge-maki';
+    const priLabel = t.priority === 'hi' ? '高' : t.priority === 'lo' ? '低' : '中';
+    const priBadge = t.priority === 'hi' ? 'badge-hi' : t.priority === 'lo' ? 'badge-lo' : 'badge-mid';
+    return '<div class="task-card ' + (t.done ? 'completed' : '') + '">' +
+      '<div class="task-check ' + (t.done ? 'checked' : '') + '" onclick="toggleTask(' + t.id + ')"></div>' +
+      '<div class="task-info">' +
+        '<div class="task-name">' + t.name + '</div>' +
+        '<div class="task-meta">' +
+          '<span class="badge ' + whoBadge + '">' + whoLabel + '</span>' +
+          '<span class="badge ' + priBadge + '">' + priLabel + '</span>' +
+          '<span class="task-date">' + t.date + ' / ' + t.deadline + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleTask(id) {
+  const tasks = loadTasks();
+  const t = tasks.find(x => x.id === id);
+  if (t) t.done = !t.done;
+  saveTasks(tasks);
+  renderTasks();
+}
+
+function filterTasks(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.task-filter').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks();
+}
+
+// 初期表示
+renderTasks();
+</script>
+
+</body>
+</html>
